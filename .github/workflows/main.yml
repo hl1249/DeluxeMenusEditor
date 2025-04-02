@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-		  cache-dependency-path: package.json  # 允许使用 package.json 进行缓存
+		  cache-dependency-path: package.json 
       - name: Install dependencies
         run: npm install
       - name: Build
