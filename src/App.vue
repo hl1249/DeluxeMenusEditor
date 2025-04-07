@@ -15,25 +15,14 @@
           <span>菜单指令</span>
           <el-input v-model="menuStyle.open_command" type="text" style="width: 140px" placeholder="开启指令无需'/'" />
         </div>
-        <div style="display: flex; align-items: center; gap: 5px;justify-content: space-between;">
-          <div style="margin-right: 20px;">
-            <el-color-picker v-model="menuStyle.color" size="small" class=how-alpha :predefine="predefineColors"
-              @change="selectChange" />
-            <span class="demonstration" style="font-size: 14px;margin-left: 8px;">颜色选择</span>
-          </div>
-          <el-checkbox v-model="menuStyle.is_bold" label="加粗" size="large" />
-          <el-checkbox v-model="menuStyle.is_decoration" label="下划线" size="large" />
-          <el-checkbox v-model="menuStyle.is_through" label="删除线" size="large" />
-          <el-checkbox v-model="menuStyle.is_italic" label="斜体" size="large" />
-          <el-button @click="clear">清除</el-button>
-        </div>
+
+
+        <el-button style="margin-left: auto;" type="primary" @click="exportMenu">导出</el-button>
       </div>
     </div>
 
     <div class="drawing">
-      <div class="title"
-        :style="`color:${menuStyle.color};font-weight:${!menuStyle.is_bold || 'bold'};text-decoration:${menuStyle.is_decoration ? 'underline' : ''} ${menuStyle.is_through ? 'line-through' : ''};font-style:${menuStyle.is_italic ? 'italic' : ''}`">
-        {{ menuStyle.title }}
+      <div class="title" v-html="utils.transformColor(menuStyle.title)">
       </div>
       <img :src="imageUrl" alt="">
       <div class="map-menu">
@@ -263,11 +252,6 @@ const predefineColors = ref([
 const defaultStyle = {
   title: "菜单",
   size: 9,
-  color: "#555555",
-  is_bold: false,
-  is_decoration: false,
-  is_through: false,
-  is_italic: false,
   open_command: null
 }
 
@@ -281,15 +265,7 @@ const clear = () => {
 
 const imageUrl = computed(() => new URL(`./assets/${menuStyle.value.size}.png`, import.meta.url).href);
 const loreUrl = computed(() => new URL(`./assets/lore_bg.png`, import.meta.url).href);
-const selectChange = (val) => {
-  if (!predefineColors.value.includes(val)) {
-    ElMessage({
-      message: '请选择预设颜色其一，否则将不会正常渲染菜单.',
-      type: 'warning',
-    })
-  }
-  console.log(val)
-}
+
 
 
 // -菜单项编辑逻辑
@@ -500,6 +476,15 @@ const confirmMaterialMenuItem = (item) => {
 
 }
 
+// -菜单导出
+const exportMenu = () => {
+  const menuData = {
+    ...menuStyle.value,
+    menuList:menuItemList
+  }
+  console.log(menuData)
+}
+
 
 </script>
 
@@ -594,5 +579,10 @@ const confirmMaterialMenuItem = (item) => {
 
 .flex {
   display: flex;
+}
+
+.form-item{
+  display: flex;
+  flex-direction: column;
 }
 </style>

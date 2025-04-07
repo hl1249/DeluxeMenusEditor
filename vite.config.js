@@ -6,7 +6,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vite.dev/config/
 export default defineConfig({
-	base:'/DeluxeMenusEditor/',
+  base: './', // 加上这一行，确保 Tauri 打包路径正常
   plugins: [vue(),
     AutoImport({
       resolvers: [ElementPlusResolver()],

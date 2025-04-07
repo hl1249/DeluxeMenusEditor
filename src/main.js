@@ -15,3 +15,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(ElementPlus)
 app.use(VueLazyLoad);
 app.mount('#app')
+
+window.addEventListener('contextmenu', (e) => {
+  e.preventDefault()
+})
