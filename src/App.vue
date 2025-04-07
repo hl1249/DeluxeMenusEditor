@@ -16,8 +16,8 @@
           <el-input v-model="menuStyle.open_command" type="text" style="width: 140px" placeholder="开启指令无需'/'" />
         </div>
 
-
-        <el-button style="margin-left: auto;" type="primary" @click="exportMenu">导出</el-button>
+        <el-button @click="createMenu" type="success" style="margin-left: auto;">生成菜单</el-button>
+        <!-- <el-button style="margin-left: auto;" type="primary" @click="exportMenu">导出</el-button> -->
       </div>
     </div>
 
@@ -208,7 +208,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watchEffect } from 'vue';
+import axios from 'axios'
+import { ref, computed, watchEffect, toRaw } from 'vue';
 import utils from './utils/util.js';
 import materialSelect from './components/materialSelect.vue';
 import expression from './components/expression.vue';
@@ -475,15 +476,36 @@ const confirmMaterialMenuItem = (item) => {
   menuItemMaterialSelectRef.value.closeMaterial()
 
 }
+// -菜单生成
+const createMenu = () => {
+  // POST
+  const menuData = {
+    ...menuStyle.value,
+    menuList: menuItemList.value.filter(item => item.material)
+  }
 
+  axios({
+    url: 'https://fc-mp-dfe03582-4d20-4823-a4af-531996ee3cb6.next.bspapp.com/exportMenu',
+    method: 'post',
+    data: {
+      ...menuData
+    },
+    headers: {
+      token: 'http-test'
+    }
+  }).then(res => {
+    console.log(res.data);
+  });
+}
 // -菜单导出
 const exportMenu = () => {
   const menuData = {
     ...menuStyle.value,
-    menuList:menuItemList
+    menuList: menuItemList
   }
   console.log(menuData)
 }
+
 
 
 </script>
@@ -581,7 +603,7 @@ const exportMenu = () => {
   display: flex;
 }
 
-.form-item{
+.form-item {
   display: flex;
   flex-direction: column;
 }
