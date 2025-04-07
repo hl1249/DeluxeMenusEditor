@@ -477,14 +477,22 @@ const confirmMaterialMenuItem = (item) => {
 
 }
 // -菜单生成
-const createMenu = () => {
+const createMenu = async () => {
   // POST
+  if(!menuStyle.value?.open_command?.trim()){
+    ElMessage({
+      message: '指令必须填写!',
+      type: 'warning',
+    })
+    return 
+  }
+
   const menuData = {
     ...menuStyle.value,
     menuList: menuItemList.value.filter(item => item.material)
   }
 
-  axios({
+  const res = await axios({
     url: 'https://fc-mp-dfe03582-4d20-4823-a4af-531996ee3cb6.next.bspapp.com/exportMenu',
     method: 'post',
     data: {
@@ -495,8 +503,26 @@ const createMenu = () => {
     }
   }).then(res => {
     console.log(res.data);
+
+    forceDownload(res.data.fileUrl,menuStyle.value.command)
   });
+  console.log('请求数据',res)
 }
+
+async function forceDownload(url, filename = 'cd.yml') {
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}
+
 // -菜单导出
 const exportMenu = () => {
   const menuData = {
