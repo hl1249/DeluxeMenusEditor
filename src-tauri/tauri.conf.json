@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "杜蕾斯菜单",
+  "productName": "杜蕾斯菜单编辑器0.1 by-yellow_Gay",
   "version": "0.1.0",
   "identifier": "com.tauri.deluX",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "杜蕾斯菜单",
+        "title": "杜蕾斯菜单编辑器0.1 by-yellow_Gay",
         "width": 1200,
         "height": 1000,
         "resizable": false,
