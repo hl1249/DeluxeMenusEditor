@@ -25,6 +25,7 @@ exports.main = async (event, context) => {
 	}
 
 	function isEmptyArray(arr) {
+		if(arr === undefined || arr === null) return true
 		return Array.isArray(arr) && arr.length === 0;
 	}
 
@@ -92,7 +93,7 @@ exports.main = async (event, context) => {
 	// 	}],
 	// }]
 
-
+	// return
 	let menuListString = post_data.menuList.map((item) => {
 		return `
   '${item.id}':
@@ -113,52 +114,46 @@ ${!isEmptyObject(item.left_click_requirement) ?
         left_click_requirements_${item.slot}:
           type: '${item.left_click_requirement.type}'
           permission: ${item.left_click_requirement.permission}
-${!isEmptyArray(item.left_click_requirement.deny_commands) ? 
+${!isEmptyArray(item.left_click_requirement?.deny_commands) ? 
 `          deny_commands:
 ${item.left_click_requirement.deny_commands.map(cmd => `          - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}` : ''}
-
 ${!isEmptyArray(item.left_click_commands) ? 
 `    left_click_commands:
 ${item.left_click_commands.map(cmd => `      - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}
-
 ${!isEmptyObject(item.shift_left_click_requirement) ? 
 `    shift_left_click_requirement:
       requirements:
         shift_left_click_requirements_${item.slot}:
           type: '${item.shift_left_click_requirement.type}'
           permission: ${item.shift_left_click_requirement.permission}
-${!isEmptyArray(item.shift_left_click_requirement.deny_commands) ? 
+${!isEmptyArray(item.shift_left_click_requirement?.deny_commands) ? 
 `          deny_commands:
 ${item.shift_left_click_requirement.deny_commands.map(cmd => `          - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}` : ''}
-
 ${!isEmptyArray(item.shift_left_click_commands) ? 
 `    shift_left_click_commands:
 ${item.shift_left_click_commands.map(cmd => `      - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}
-
 ${!isEmptyObject(item.right_click_requirement) ? 
 `    right_click_requirement:
       requirements:
         right_click_requirements_${item.slot}:
           type: '${item.right_click_requirement.type}'
           permission: ${item.right_click_requirement.permission}
-${!isEmptyArray(item.right_click_requirement.deny_commands) ? 
+${!isEmptyArray(item.right_click_requirement?.deny_commands) ? 
 `          deny_commands:
 ${item.right_click_requirement.deny_commands.map(cmd => `          - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}` : ''}
 
 ${!isEmptyArray(item.right_click_commands) ? 
 `    right_click_commands:
 ${item.right_click_commands.map(cmd => `      - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}
-
 ${!isEmptyObject(item.shift_right_click_requirement) ? 
 `    shift_right_click_requirement:
       requirements:
         shift_right_click_requirements_${item.slot}:
           type: '${item.shift_right_click_requirement.type}'
           permission: ${item.shift_right_click_requirement.permission}
-${!isEmptyArray(item.shift_right_click_requirement.deny_commands) ? 
+${!isEmptyArray(item.shift_right_click_requirement?.deny_commands) ? 
 `          deny_commands:
 ${item.shift_right_click_requirement.deny_commands.map(cmd => `          - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}` : ''}
-
 ${!isEmptyArray(item.shift_right_click_commands) ? 
 `    shift_right_click_commands:
 ${item.shift_right_click_commands.map(cmd => `      - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}
