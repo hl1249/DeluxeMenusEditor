@@ -515,7 +515,7 @@ const createMenu = async () => {
   }).then(res => {
     console.log(res.data);
 
-    if (res.data.success) {
+    if (res.data.fileUrl) {
       ElMessage({
         message: '菜单生成成功',
         type: 'success',
