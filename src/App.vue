@@ -16,7 +16,15 @@
           <el-input v-model="menuStyle.open_command" type="text" style="width: 140px" placeholder="开启指令无需'/'" />
         </div>
 
-        <el-button @click="createMenu" type="success" style="margin-left: auto;">生成菜单</el-button>
+        <div style="display: flex;">
+          <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" :icon="InfoFilled" icon-color="#626AEF"
+            title="确定要重置菜单?" @confirm="resetMenu">
+            <template #reference>
+              <el-button style="margin-left:auto" type="danger">重置</el-button>
+            </template>
+          </el-popconfirm>
+          <el-button @click="createMenu" type="success" :loading="isLoad">生成菜单</el-button>
+        </div>
         <!-- <el-button style="margin-left: auto;" type="primary" @click="exportMenu">导出</el-button> -->
       </div>
     </div>
@@ -41,7 +49,7 @@
 
 
   <!-- 菜单项编辑 -->
-  <el-dialog v-model="menuEditVisible" title="菜单项编辑" width="1000">
+  <el-dialog v-model="menuEditVisible" title="菜单项编辑" width="1000" top="8vh">
     <div style="display: flex;justify-content: space-between;max-height: 600px;overflow-y: auto;">
       <el-form>
         <el-form-item label="菜单项名称">
@@ -210,6 +218,7 @@
 <script setup>
 import axios from 'axios'
 import { ref, computed, watchEffect, toRaw } from 'vue';
+import { InfoFilled } from '@element-plus/icons-vue'
 import utils from './utils/util.js';
 import materialSelect from './components/materialSelect.vue';
 import expression from './components/expression.vue';
@@ -477,21 +486,23 @@ const confirmMaterialMenuItem = (item) => {
 
 }
 // -菜单生成
+const isLoad = ref(false)
 const createMenu = async () => {
   // POST
-  if(!menuStyle.value?.open_command?.trim()){
+  if (!menuStyle.value?.open_command?.trim()) {
     ElMessage({
       message: '指令必须填写!',
       type: 'warning',
     })
-    return 
+    return
   }
 
   const menuData = {
     ...menuStyle.value,
-    menuList: menuItemList.value.filter(item => item.material)
+    menuList: menuItemList.value.filter(item => item.material).map(({ icon, ...item }) => item)
   }
 
+  isLoad.value = true
   const res = await axios({
     url: 'https://fc-mp-dfe03582-4d20-4823-a4af-531996ee3cb6.next.bspapp.com/exportMenu',
     method: 'post',
@@ -504,9 +515,29 @@ const createMenu = async () => {
   }).then(res => {
     console.log(res.data);
 
-    forceDownload(res.data.fileUrl,menuStyle.value.command)
-  });
-  console.log('请求数据',res)
+    if (res.data.success) {
+      ElMessage({
+        message: '菜单生成成功',
+        type: 'success',
+      })
+      forceDownload(res.data.fileUrl, menuStyle.value.command)
+    } else {
+      ElMessage({
+        message: '菜单生成失败' + res.data.error.message,
+        type: 'warning',
+      })
+    }
+
+  }).catch((err) => {
+    ElMessage({
+      message: '菜单生成失败' + err,
+      type: 'warning',
+    })
+  })
+    .finally(() => {
+      isLoad.value = false
+    });
+  console.log('请求数据', res)
 }
 
 async function forceDownload(url, filename = 'cd.yml') {
@@ -521,6 +552,11 @@ async function forceDownload(url, filename = 'cd.yml') {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(blobUrl);
+}
+
+// -重置
+const resetMenu = () => {
+  location.reload()
 }
 
 // -菜单导出
