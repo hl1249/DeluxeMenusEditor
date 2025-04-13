@@ -31,10 +31,6 @@
           </el-popconfirm>
           <el-button @click="createMenu" type="success" :loading="isLoad">生成菜单</el-button>
         </div>
-
-          <div v-for="item in [1, 2, 3, 4, 5]" :key="item.id">
-            {{ item }}
-          </div>
         <!-- <el-button style="margin-left: auto;" type="primary" @click="exportMenu">导出</el-button> -->
       </div>
 
@@ -229,13 +225,9 @@
 
 <script setup>
 
-const onUpdate = (vla)=>{
-  console.log(val)
-}
 
 import axios from 'axios'
 import yaml from 'js-yaml'
-import { VueDraggable } from 'vue-draggable-plus'
 import { ref, computed, watchEffect } from 'vue';
 import { InfoFilled } from '@element-plus/icons-vue'
 import utils from './utils/util.js';
