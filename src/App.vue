@@ -17,6 +17,12 @@
         </div>
 
         <div style="display: flex;">
+          <el-button style="position: relative;" type="primary">
+            <input type="file" @change="readFile"
+              style="z-index: 2; cursor: pointer; position: absolute;opacity: 0;width: 100%;height: 100%;left: 0;top: 0;">
+            <span style="z-index: 1;">读取文件（只能读取该编辑器生成的）</span>
+          </el-button>
+
           <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" :icon="InfoFilled" icon-color="#626AEF"
             title="确定要重置菜单?" @confirm="resetMenu">
             <template #reference>
@@ -25,8 +31,13 @@
           </el-popconfirm>
           <el-button @click="createMenu" type="success" :loading="isLoad">生成菜单</el-button>
         </div>
+
+          <div v-for="item in [1, 2, 3, 4, 5]" :key="item.id">
+            {{ item }}
+          </div>
         <!-- <el-button style="margin-left: auto;" type="primary" @click="exportMenu">导出</el-button> -->
       </div>
+
     </div>
 
     <div class="drawing">
@@ -35,6 +46,7 @@
       <img :src="imageUrl" alt="">
       <div class="map-menu">
         <div class="map-menu-item" v-for="item, index in menuItemList" @click="openMenuItemEditDialog(item, index)">
+
           <div v-if="item.icon" style="width: 100%;height: 100%;position: relative;">
             <img :src="item.icon" alt="" />
             <div v-if="item.amount > 1"
@@ -212,20 +224,45 @@
   <!-- shift右键指令执行 -->
   <command ref="shiftRightCommandRef" @confirmCommand="shiftRightCommandConfirm"
     :commandList="currenItem.shift_right_click_commands" />
-
+  <img :src="iconUrl" alt="">
 </template>
 
 <script setup>
+
+const onUpdate = (vla)=>{
+  console.log(val)
+}
+
 import axios from 'axios'
-import { ref, computed, watchEffect, toRaw } from 'vue';
+import yaml from 'js-yaml'
+import { VueDraggable } from 'vue-draggable-plus'
+import { ref, computed, watchEffect } from 'vue';
 import { InfoFilled } from '@element-plus/icons-vue'
 import utils from './utils/util.js';
 import materialSelect from './components/materialSelect.vue';
 import expression from './components/expression.vue';
 import command from './components/command.vue';
 
+
 import expressionRender from './components/expressionRender.vue'
 import commandRender from './components/commandRender.vue'
+
+
+const iconMap = import.meta.glob('./assets/icon/*.png');
+const path = `./assets/icon/ACACIA_BOAT.png`;
+console.log('尝试加载图标路径:', path, '是否存在:', iconMap[path] !== undefined);
+
+async function getIconPath(material) {
+  const path = `./assets/icon/${material}.png`;
+  const loader = iconMap[path];
+  if (loader) {
+    const mod = await loader(); // 模块懒加载
+    return mod.default; // 返回图片路径
+  } else {
+    console.warn(`未找到图片: ${path}`);
+    return new URL('./assets/icon/default.png', import.meta.url).href;
+  }
+}
 
 const menuItemMaterialSelectRef = ref(null)
 const viewRequirementExpressionRef = ref(null)
@@ -304,18 +341,17 @@ const defaultItem = {
 
 watchEffect(() => {
   const oldMenuItemList = [...menuItemList.value]; // 复制旧数组
-  console.log('oldMenuItemList', oldMenuItemList)
   const newMenuItemList = Array.from({ length: menuStyle.value.size }, (_, index) => ({
     slot: index,
     id: `item-${index}`,
     ...defaultItem
   }));
 
-  console.log('newMenuItemList', newMenuItemList)
+  // console.log('newMenuItemList', newMenuItemList)
   // 遍历旧数组，把匹配的 slot 数据插入新数组的正确位置
   oldMenuItemList.forEach(oldItem => {
     const index = newMenuItemList.findIndex(newItem => newItem.slot === oldItem.slot);
-    console.log('index', index)
+
     if (index !== -1) {
       newMenuItemList[index] = { ...oldItem }; // 保留旧数据，并覆盖新数据的默认值
     }
@@ -402,6 +438,7 @@ const leftCommandClick = () => {
 }
 
 const leftCommandConfirm = (commandList) => {
+  console.log('commandList', commandList)
   leftCommandRef.value.closeCommandEdit()
   currenItem.value.left_click_commands = [...commandList]
 }
@@ -482,6 +519,7 @@ const confirmMaterialMenuItem = (item) => {
     material: item.name,
     icon: item.src
   }
+  console.log('materialTemporarily', materialTemporarily)
   menuItemMaterialSelectRef.value.closeMaterial()
 
 }
@@ -566,6 +604,125 @@ const exportMenu = () => {
     menuList: menuItemList
   }
   console.log(menuData)
+}
+
+// -yml读取
+const fileInput = ref(null)
+const yamlText = ref('')
+
+const readFile = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // 创建一个新的 FileReader 实例
+  const reader = new FileReader()
+
+  // 处理文件读取成功的回调
+  reader.onload = async (e) => {
+    const text = e.target.result
+    try {
+      // 尝试解析 YAML 内容
+      const data = await yaml.load(text)
+      yamlText.value = JSON.stringify(data, null, 2)
+      console.log('读取数据', data)
+
+      const { items, ...menuStyleTitle } = data
+      menuStyle.value = {
+        ...menuStyleTitle,
+        title: data.menu_title
+      }
+
+      // 分割中括号字符串为数组 "[console] fuck world" => ["[console]","fuck world"]
+      function splitByFirstBracket(str) {
+        const match = str.match(/^(\[[^\]]+\])\s*(.*)$/);
+        return match ? [match[1], match[2].trim()] : [];
+      }
+
+      Object.keys(items).forEach(async (item, index) => {
+        const obj = items[item]
+        for (const [ind, ite] of menuItemList.value.entries()) {
+          if (obj.slot === ite.slot) {
+            console.log("匹配到了", obj.lore)
+
+            const iconPath = await getIconPath(obj.material)
+
+            menuItemList.value[obj.slot] = {
+              ...defaultItem,
+              ...obj,
+              lore: Array.isArray(obj.lore) ? obj.lore.join('\n') : "",
+              view_requirement: obj?.view_requirement?.requirements?.view_requirements_0,
+              left_click_requirement: obj?.left_click_requirement?.requirements?.left_click_requirements_0 ? {
+                ...obj.left_click_requirement.requirements.left_click_requirements_0,
+                deny_commands: obj.left_click_requirement.requirements.left_click_requirements_0.deny_commands.map(dc => ({
+                  type: splitByFirstBracket(dc)[0],
+                  content: splitByFirstBracket(dc)[1]
+                }))
+              } : undefined,
+              left_click_commands: obj.left_click_commands ? obj.left_click_commands.map(lcc => ({
+                type: splitByFirstBracket(lcc)[0],
+                content: splitByFirstBracket(lcc)[1]
+              })) : [],
+              shift_left_click_requirement: obj?.shift_left_click_requirement?.requirements?.shift_left_click_requirements_0 ? {
+                ...obj.shift_left_click_requirement.requirements.shift_left_click_requirements_0,
+                deny_commands: obj.shift_left_click_requirement.requirements.shift_left_click_requirements_0.deny_commands.map(dc => ({
+                  type: splitByFirstBracket(dc)[0],
+                  content: splitByFirstBracket(dc)[1]
+                }))
+              } : undefined,
+              shift_left_click_commands: obj.shift_left_click_commands ? obj.shift_left_click_commands.map(lcc => ({
+                type: splitByFirstBracket(lcc)[0],
+                content: splitByFirstBracket(lcc)[1]
+              })) : [],
+              right_click_requirement: obj?.right_click_requirement?.requirements?.right_click_requirements_0 ? {
+                ...obj.right_click_requirement.requirements.right_click_requirements_0,
+                deny_commands: obj.right_click_requirement.requirements.right_click_requirements_0.deny_commands.map(dc => ({
+                  type: splitByFirstBracket(dc)[0],
+                  content: splitByFirstBracket(dc)[1]
+                }))
+              } : undefined,
+              right_click_commands: obj.right_click_commands ? obj.right_click_commands.map(lcc => ({
+                type: splitByFirstBracket(lcc)[0],
+                content: splitByFirstBracket(lcc)[1]
+              })) : [],
+              shift_right_click_requirement: obj?.shift_right_click_requirement?.requirements?.shift_right_click_requirements_0 ? {
+                ...obj.shift_right_click_requirement.requirements.shift_right_click_requirements_0,
+                deny_commands: obj.shift_right_click_requirement.requirements.shift_right_click_requirements_0.deny_commands.map(dc => ({
+                  type: splitByFirstBracket(dc)[0],
+                  content: splitByFirstBracket(dc)[1]
+                }))
+              } : undefined,
+
+              icon: iconPath,
+              id: item
+            }
+          }
+        }
+
+      })
+      console.log('读取完数据', menuItemList.value)
+
+    } catch (err) {
+      console.log(err)
+      // 解析失败时的错误处理
+      yamlText.value = `❌ YAML 解析失败：${err.message}`
+      ElMessage({
+        message: ' YAML 解析失败' + err.message,
+        type: 'warning',
+      })
+    }
+  }
+
+  // 处理文件读取失败的回调
+  reader.onerror = (err) => {
+    console.error('文件读取失败:', err)
+    yamlText.value = '❌ 文件读取失败，请检查文件格式或内容'
+  }
+
+  // 读取文件
+  reader.readAsText(file)
+
+  // 清空 input，支持重复上传相同文件
+  fileInput.value = ''
 }
 
 
