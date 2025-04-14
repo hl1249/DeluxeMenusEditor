@@ -21,6 +21,7 @@ exports.main = async (event, context) => {
 	};
 
 	function isEmptyObject(obj) {
+		if(obj === undefined || obj === null) return true
 		return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
 	}
 
@@ -94,12 +95,11 @@ exports.main = async (event, context) => {
 	// }]
 
 	// return
-	let menuListString = post_data.menuList.map((item) => {
-		return `
-  '${item.id}':
+	let menuListString = post_data.menuList.map((item,index) => {
+		return `  '${item.id}':
     material: ${item.material.split('.')[0]}
     slot: ${item.slot}
-    display_name: ${item.display_name}
+    display_name: "${item.display_name}"
 ${item.lore ? `    lore:\n${item.lore.split('\n').map(lores => `      - '${lores}'`).join('\n')}` : ''}
 ${!isEmptyObject(item.view_requirement) ? 
 `    view_requirement:
@@ -157,8 +157,8 @@ ${item.shift_right_click_requirement.deny_commands.map(cmd => `          - '${cm
 ${!isEmptyArray(item.shift_right_click_commands) ? 
 `    shift_right_click_commands:
 ${item.shift_right_click_commands.map(cmd => `      - '${cmd.type} ${cmd.content}'`).join('\n')}` : ''}
-`.trim();
-	}).join('\n\n');
+`
+	}).join('\n').replace(/^\s*[\r\n]/gm, '');
 	console.log(menuListString);
 
 
@@ -176,7 +176,7 @@ open_requirement:
       deny_commands:
         - '[message] &c你没有得到这样做的许可!'
 items:
-  ${menuListString}
+${menuListString}
 `;
 
 
