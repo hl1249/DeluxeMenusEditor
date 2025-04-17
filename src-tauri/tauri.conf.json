@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "DeluxeMenusEditor",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "identifier": "com.tauri.deluX",
   "build": {
     "frontendDist": "../dist",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "杜蕾斯菜单编辑器0.12 by-yellow_Gay",
+        "title": "杜蕾斯菜单编辑器0.13 by-yellow_Gay",
         "width": 1200,
         "height": 850,
         "resizable": false,

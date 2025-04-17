@@ -220,7 +220,6 @@
   <!-- shift右键指令执行 -->
   <command ref="shiftRightCommandRef" @confirmCommand="shiftRightCommandConfirm"
     :commandList="currenItem.shift_right_click_commands" />
-  <img :src="iconUrl" alt="">
 </template>
 
 <script setup>
@@ -228,7 +227,7 @@
 
 import axios from 'axios'
 import yaml from 'js-yaml'
-import { ref, computed, watchEffect } from 'vue';
+import { ref, computed, watchEffect, nextTick } from 'vue';
 import { InfoFilled } from '@element-plus/icons-vue'
 import utils from './utils/util.js';
 import materialSelect from './components/materialSelect.vue';
@@ -350,7 +349,7 @@ watchEffect(() => {
   });
 
   menuItemList.value = newMenuItemList;
-
+  console.log("我这里执行了一次")
 });
 
 const currenItem = ref({
@@ -630,66 +629,68 @@ const readFile = async (event) => {
         return match ? [match[1], match[2].trim()] : [];
       }
 
-      Object.keys(items).forEach(async (item, index) => {
-        const obj = items[item]
-        for (const [ind, ite] of menuItemList.value.entries()) {
-          if (obj.slot === ite.slot) {
-            console.log("匹配到了", obj.lore)
+      nextTick(() => {
+        Object.keys(items).forEach(async (item, index) => {
+          const obj = items[item]
+          for (const [ind, ite] of menuItemList.value.entries()) {
+            if (obj.slot === ite.slot) {
+              console.log("匹配到了", obj.lore)
 
-            const iconPath = await getIconPath(obj.material)
+              const iconPath = await getIconPath(obj.material)
 
-            menuItemList.value[obj.slot] = {
-              ...defaultItem,
-              ...obj,
-              lore: Array.isArray(obj.lore) ? obj.lore.join('\n') : "",
-              view_requirement: obj?.view_requirement?.requirements?.view_requirements_0,
-              left_click_requirement: obj?.left_click_requirement?.requirements?.left_click_requirements_0 ? {
-                ...obj.left_click_requirement.requirements.left_click_requirements_0,
-                deny_commands: obj.left_click_requirement.requirements.left_click_requirements_0.deny_commands.map(dc => ({
-                  type: splitByFirstBracket(dc)[0],
-                  content: splitByFirstBracket(dc)[1]
-                }))
-              } : undefined,
-              left_click_commands: obj.left_click_commands ? obj.left_click_commands.map(lcc => ({
-                type: splitByFirstBracket(lcc)[0],
-                content: splitByFirstBracket(lcc)[1]
-              })) : [],
-              shift_left_click_requirement: obj?.shift_left_click_requirement?.requirements?.shift_left_click_requirements_0 ? {
-                ...obj.shift_left_click_requirement.requirements.shift_left_click_requirements_0,
-                deny_commands: obj.shift_left_click_requirement.requirements.shift_left_click_requirements_0.deny_commands.map(dc => ({
-                  type: splitByFirstBracket(dc)[0],
-                  content: splitByFirstBracket(dc)[1]
-                }))
-              } : undefined,
-              shift_left_click_commands: obj.shift_left_click_commands ? obj.shift_left_click_commands.map(lcc => ({
-                type: splitByFirstBracket(lcc)[0],
-                content: splitByFirstBracket(lcc)[1]
-              })) : [],
-              right_click_requirement: obj?.right_click_requirement?.requirements?.right_click_requirements_0 ? {
-                ...obj.right_click_requirement.requirements.right_click_requirements_0,
-                deny_commands: obj.right_click_requirement.requirements.right_click_requirements_0.deny_commands.map(dc => ({
-                  type: splitByFirstBracket(dc)[0],
-                  content: splitByFirstBracket(dc)[1]
-                }))
-              } : undefined,
-              right_click_commands: obj.right_click_commands ? obj.right_click_commands.map(lcc => ({
-                type: splitByFirstBracket(lcc)[0],
-                content: splitByFirstBracket(lcc)[1]
-              })) : [],
-              shift_right_click_requirement: obj?.shift_right_click_requirement?.requirements?.shift_right_click_requirements_0 ? {
-                ...obj.shift_right_click_requirement.requirements.shift_right_click_requirements_0,
-                deny_commands: obj.shift_right_click_requirement.requirements.shift_right_click_requirements_0.deny_commands.map(dc => ({
-                  type: splitByFirstBracket(dc)[0],
-                  content: splitByFirstBracket(dc)[1]
-                }))
-              } : undefined,
+              menuItemList.value[obj.slot] = {
+                ...defaultItem,
+                ...obj,
+                lore: Array.isArray(obj.lore) ? obj.lore.join('\n') : "",
+                view_requirement: obj?.view_requirement?.requirements?.view_requirements_0,
+                left_click_requirement: obj?.left_click_requirement?.requirements?.left_click_requirements_0 ? {
+                  ...obj.left_click_requirement.requirements.left_click_requirements_0,
+                  deny_commands: obj?.left_click_requirement?.requirements?.left_click_requirements_0?.deny_commands ? obj.left_click_requirement.requirements.left_click_requirements_0.deny_commands.map(dc => ({
+                    type: splitByFirstBracket(dc)[0],
+                    content: splitByFirstBracket(dc)[1]
+                  })) : []
+                } : undefined,
+                left_click_commands: obj.left_click_commands ? obj.left_click_commands.map(lcc => ({
+                  type: splitByFirstBracket(lcc)[0],
+                  content: splitByFirstBracket(lcc)[1]
+                })) : [],
+                shift_left_click_requirement: obj?.shift_left_click_requirement?.requirements?.shift_left_click_requirements_0 ? {
+                  ...obj.shift_left_click_requirement.requirements.shift_left_click_requirements_0,
+                  deny_commands: obj?.shift_left_click_requirement?.requirements.shift_left_click_requirements_0?.deny_commands ? obj.shift_left_click_requirement.requirements.shift_left_click_requirements_0.deny_commands.map(dc => ({
+                    type: splitByFirstBracket(dc)[0],
+                    content: splitByFirstBracket(dc)[1]
+                  })) : []
+                } : undefined,
+                shift_left_click_commands: obj.shift_left_click_commands ? obj.shift_left_click_commands.map(lcc => ({
+                  type: splitByFirstBracket(lcc)[0],
+                  content: splitByFirstBracket(lcc)[1]
+                })) : [],
+                right_click_requirement: obj?.right_click_requirement?.requirements?.right_click_requirements_0 ? {
+                  ...obj.right_click_requirement.requirements.right_click_requirements_0,
+                  deny_commands: obj?.right_click_requirement?.requirements?.right_click_requirements_0?.deny_commands ? obj.right_click_requirement.requirements.right_click_requirements_0.deny_commands.map(dc => ({
+                    type: splitByFirstBracket(dc)[0],
+                    content: splitByFirstBracket(dc)[1]
+                  })) : []
+                } : undefined,
+                right_click_commands: obj.right_click_commands ? obj.right_click_commands.map(lcc => ({
+                  type: splitByFirstBracket(lcc)[0],
+                  content: splitByFirstBracket(lcc)[1]
+                })) : [],
+                shift_right_click_requirement: obj?.shift_right_click_requirement?.requirements?.shift_right_click_requirements_0 ? {
+                  ...obj.shift_right_click_requirement.requirements.shift_right_click_requirements_0,
+                  deny_commands: obj?.shift_right_click_requirement?.requirements?.shift_right_click_requirements_0?.deny_commands ? obj.shift_right_click_requirement.requirements.shift_right_click_requirements_0.deny_commands.map(dc => ({
+                    type: splitByFirstBracket(dc)[0],
+                    content: splitByFirstBracket(dc)[1]
+                  })) : []
+                } : undefined,
 
-              icon: iconPath,
-              id: item
+                icon: iconPath,
+                id: item
+              }
             }
           }
-        }
 
+        })
       })
       console.log('读取完数据', menuItemList.value)
 
